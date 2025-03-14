@@ -16,12 +16,19 @@ pub struct OpCode {
 // }
 
 
-pub static  CPU_OPS_CODES : [OpCode ; 123] = [
+pub static  CPU_OPS_CODES : [OpCode ; 151] = [
     OpCode{code : 0x00, inst : "BRK", len : 1, cycles : 7,  page_crossed_cycles : 0,  mode :AddressingMode::NoneAddressing},
     OpCode{code : 0xEA, inst : "NOP", len : 1, cycles : 2,  page_crossed_cycles : 0,  mode :AddressingMode::NoneAddressing},
     OpCode{ code :0xAA, inst :"TAX", len : 1, cycles : 2,  page_crossed_cycles : 0 , mode : AddressingMode::NoneAddressing },
+    OpCode{ code :0xA8, inst :"TAY", len : 1, cycles : 2,  page_crossed_cycles : 0 , mode : AddressingMode::NoneAddressing },
+    OpCode{ code :0xBA, inst :"TSX", len : 1, cycles : 2,  page_crossed_cycles : 0 , mode : AddressingMode::NoneAddressing },
+    OpCode{ code :0x8A, inst :"TXA", len : 1, cycles : 2,  page_crossed_cycles : 0 , mode : AddressingMode::NoneAddressing },
+    OpCode{ code :0x9A, inst :"TXS", len : 1, cycles : 2,  page_crossed_cycles : 0 , mode : AddressingMode::NoneAddressing },
+    OpCode{ code :0x98, inst :"TYA", len : 1, cycles : 2,  page_crossed_cycles : 0 , mode : AddressingMode::NoneAddressing },
     OpCode{ code :0x48,  inst : "PHA",  len : 1,  cycles : 3, page_crossed_cycles : 0, mode : AddressingMode::NoneAddressing},
     OpCode{ code :0x08,  inst : "PHP",  len : 1,  cycles : 3, page_crossed_cycles : 0, mode : AddressingMode::NoneAddressing},
+    OpCode{ code :0x68,  inst : "PLA",  len : 1,  cycles : 4, page_crossed_cycles : 0, mode : AddressingMode::NoneAddressing},
+    OpCode{ code :0x28,  inst : "PLP",  len : 1,  cycles : 4, page_crossed_cycles : 0, mode : AddressingMode::NoneAddressing},
     OpCode{ code :0xE8,  inst : "INX",  len : 1,  cycles : 2, page_crossed_cycles : 0, mode : AddressingMode::NoneAddressing},
     OpCode{ code :0xC8,  inst : "INY",  len : 1,  cycles : 2, page_crossed_cycles : 0, mode : AddressingMode::NoneAddressing},
     OpCode{ code :0xCA,  inst : "DEX",  len : 1,  cycles : 2, page_crossed_cycles : 0, mode : AddressingMode::NoneAddressing},
@@ -38,6 +45,12 @@ pub static  CPU_OPS_CODES : [OpCode ; 123] = [
     OpCode{ code :0xD8,  inst : "CLD",  len : 1,  cycles : 2, page_crossed_cycles : 0, mode : AddressingMode::NoneAddressing},
     OpCode{ code :0x58,  inst : "CLI",  len : 1,  cycles : 2, page_crossed_cycles : 0, mode : AddressingMode::NoneAddressing},
     OpCode{ code :0xB8,  inst : "CLV",  len : 1,  cycles : 2, page_crossed_cycles : 0, mode : AddressingMode::NoneAddressing},
+    OpCode{ code :0x38,  inst : "SEC",  len : 1,  cycles : 2, page_crossed_cycles : 0, mode : AddressingMode::NoneAddressing},
+    OpCode{ code :0xF8,  inst : "SED",  len : 1,  cycles : 2, page_crossed_cycles : 0, mode : AddressingMode::NoneAddressing},
+    OpCode{ code :0x78,  inst : "SEI",  len : 1,  cycles : 2, page_crossed_cycles : 0, mode : AddressingMode::NoneAddressing},
+    OpCode{ code :0x40,  inst : "RTI",  len : 1,  cycles : 6, page_crossed_cycles : 0, mode : AddressingMode::NoneAddressing},
+    OpCode{ code :0x60,  inst : "RTS",  len : 1,  cycles : 6, page_crossed_cycles : 0, mode : AddressingMode::NoneAddressing},
+
 
     OpCode {code : 0x4C, inst :"JMP", len : 3, cycles :3,  page_crossed_cycles : 0 ,  mode :AddressingMode::Absolute},
     OpCode {code : 0x6C, inst :"JMP", len : 3, cycles :5,  page_crossed_cycles : 0 ,  mode :AddressingMode::NoneAddressing},
@@ -68,6 +81,18 @@ pub static  CPU_OPS_CODES : [OpCode ; 123] = [
     OpCode{code : 0xAC, inst : "LDY", len : 3,  cycles : 4,  page_crossed_cycles : 0 , mode :AddressingMode::Absolute},
     OpCode{code : 0xBC, inst : "LDY", len : 3, cycles :4, page_crossed_cycles : 1, mode :AddressingMode::Absolute_X},
 
+    OpCode {code : 0x2A, inst : "ROL", len : 1,cycles : 2,  page_crossed_cycles : 0 ,  mode :AddressingMode::NoneAddressing},
+    OpCode {code : 0x26, inst :"ROL", len : 2, cycles :5,  page_crossed_cycles : 0 ,  mode :AddressingMode::ZeroPage},
+    OpCode {code : 0x36, inst :"ROL", len : 2, cycles :6,  page_crossed_cycles : 0 ,  mode :AddressingMode::ZeroPage_X},
+    OpCode{code : 0x2E, inst : "ROL", len : 3,  cycles : 6,  page_crossed_cycles : 0 , mode :AddressingMode::Absolute},
+    OpCode{code : 0x3E, inst : "ROL", len : 3, cycles :7, page_crossed_cycles : 0, mode :AddressingMode::Absolute_X},
+
+    OpCode {code : 0x6A, inst : "ROR", len : 1,cycles : 2,  page_crossed_cycles : 0 ,  mode :AddressingMode::NoneAddressing},
+    OpCode {code : 0x66, inst :"ROR", len : 2, cycles :5,  page_crossed_cycles : 0 ,  mode :AddressingMode::ZeroPage},
+    OpCode {code : 0x76, inst :"ROR", len : 2, cycles :6,  page_crossed_cycles : 0 ,  mode :AddressingMode::ZeroPage_X},
+    OpCode{code : 0x6E, inst : "ROR", len : 3,  cycles : 6,  page_crossed_cycles : 0 , mode :AddressingMode::Absolute},
+    OpCode{code : 0x6E, inst : "ROR", len : 3, cycles :7, page_crossed_cycles : 0, mode :AddressingMode::Absolute_X},
+
     OpCode {code : 0x4A, inst : "LSR", len : 1,cycles : 2,  page_crossed_cycles : 0 ,  mode :AddressingMode::NoneAddressing},
     OpCode {code : 0x46, inst :"LSR", len : 2, cycles :5,  page_crossed_cycles : 0 ,  mode :AddressingMode::ZeroPage},
     OpCode {code : 0x56, inst :"LSR", len : 2, cycles :6,  page_crossed_cycles : 0 ,  mode :AddressingMode::ZeroPage_X},
@@ -81,6 +106,14 @@ pub static  CPU_OPS_CODES : [OpCode ; 123] = [
     OpCode{code : 0x99, inst : "STA",  len : 3, cycles : 5, page_crossed_cycles : 0 , mode : AddressingMode::Absolute_Y},
     OpCode{code : 0x81, inst : "STA", len : 2, cycles : 6, page_crossed_cycles : 0,  mode : AddressingMode::Indirect_X},
     OpCode{code : 0x91, inst : "STA", len : 2, cycles : 6, page_crossed_cycles : 0, mode : AddressingMode::Indirect_Y},
+
+    OpCode{code : 0x86, inst : "STX", len : 2, cycles : 3,  page_crossed_cycles : 0, mode :AddressingMode::ZeroPage},
+    OpCode{code : 0x96, inst : "STX", len : 2, cycles : 4, page_crossed_cycles :0, mode :AddressingMode::ZeroPage_Y},
+    OpCode{code : 0x8E, inst : "STX", len : 3, cycles : 4, page_crossed_cycles : 0, mode :AddressingMode::Absolute},
+
+    OpCode{code : 0x84, inst : "STY", len : 2, cycles : 3,  page_crossed_cycles : 0, mode :AddressingMode::ZeroPage},
+    OpCode{code : 0x94, inst : "STY", len : 2, cycles : 4, page_crossed_cycles :0, mode :AddressingMode::ZeroPage_X},
+    OpCode{code : 0x8C, inst : "STY", len : 3, cycles : 4, page_crossed_cycles : 0, mode :AddressingMode::Absolute},
 
     OpCode{code : 0x69, inst : "ADC", len : 2, cycles : 2,  page_crossed_cycles : 0, mode :AddressingMode::Immediate},
     OpCode{code : 0x65, inst : "ADC", len : 2, cycles : 3,  page_crossed_cycles : 0, mode :AddressingMode::ZeroPage},
@@ -162,10 +195,5 @@ pub static  CPU_OPS_CODES : [OpCode ; 123] = [
 ];
 
 pub fn map_ops_code(code : u8) -> Option<&'static OpCode> {
-    for opscode in CPU_OPS_CODES.iter() {
-        if opscode.code == code {
-            return Some(opscode);
-        }
-    }
-    None
+    CPU_OPS_CODES.iter().find(|&opscode| opscode.code == code)
 }

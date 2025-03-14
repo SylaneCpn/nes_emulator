@@ -4,89 +4,93 @@ mod test;
 pub mod opcode;
 pub mod cpu;
 
-use cpu::CPU;
-use macroquad::prelude::*;
+use std::time::Duration;
 
-fn map_rgb_to_rgba(array : &[u8;32 * 3 * 32]) -> [u8 ; 32 * 4 * 32] {
-    let mut result = [0_u8 ; 32 * 4 * 32 ];
-    let mut big_counter = 0;
-    let mut small_counter = 0;
-    while small_counter < 32 * 32 * 3 {
-        result[big_counter] = array[small_counter];
-        result[big_counter + 1] = array[small_counter + 1];
-        result[big_counter + 2] = array[small_counter + 2];
-        result[big_counter + 3] = 255;
-        big_counter += 4;
-        small_counter +=3;
-    }
-    result
-}
+use cpu::CPU;
+use rand::*;
+
+
+use sdl2::event::Event;
+use sdl2::EventPump;
+use sdl2::keyboard::Keycode;
+use sdl2::pixels::Color;
+use sdl2::pixels::PixelFormatEnum;
+
+
 
 fn color(byte: u8) -> Color {
     match byte {
-        0 => BLACK,
-        1 => WHITE,
-        2 | 9 => GRAY,
-        3 | 10 => RED,
-        4 | 11 => GREEN,
-        5 | 12 => BLUE,
-        6 | 13 => MAGENTA,
-        7 | 14 => YELLOW,
-        _ => PINK,
+        0 => sdl2::pixels::Color::BLACK,
+        1 => sdl2::pixels::Color::WHITE,
+        2 | 9 => sdl2::pixels::Color::GREY,
+        3 | 10 => sdl2::pixels::Color::RED,
+        4 | 11 => sdl2::pixels::Color::GREEN,
+        5 | 12 => sdl2::pixels::Color::BLUE,
+        6 | 13 => sdl2::pixels::Color::MAGENTA,
+        7 | 14 => sdl2::pixels::Color::YELLOW,
+        _ => sdl2::pixels::Color::CYAN,
     }
-}
+ }
 
-fn handle_user_input(cpu : &mut CPU) {
-    if is_key_down(KeyCode::Escape) || is_quit_requested() {
-        std::process::exit(0);
+fn handle_user_input(cpu: &mut CPU, event_pump: &mut EventPump) {
+    for event in event_pump.poll_iter() {
+        match event {
+            Event::Quit { .. } | Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
+                std::process::exit(0)
+            },
+            Event::KeyDown { keycode: Some(Keycode::W), .. } => {
+                cpu.mem_write(0xff, 0x77);
+            },
+            Event::KeyDown { keycode: Some(Keycode::S), .. } => {
+                cpu.mem_write(0xff, 0x73);
+            },
+            Event::KeyDown { keycode: Some(Keycode::A), .. } => {
+                cpu.mem_write(0xff, 0x61);
+            },
+            Event::KeyDown { keycode: Some(Keycode::D), .. } => {
+                cpu.mem_write(0xff, 0x64);
+            }
+            _ => {/* do nothing */}
+        }
     }
-    else if is_key_down(KeyCode::Z) {
-        cpu.mem_write(0xFF, 0x77);
-    }
+ }
 
-    else if is_key_down(KeyCode::Q) {
-        cpu.mem_write(0xFF, 0x61);
-    }
-
-    else if is_key_down(KeyCode::S) {
-        cpu.mem_write(0xFF, 0x73);
-    }
-
-    else if is_key_down(KeyCode::D){
-        cpu.mem_write(0xFF, 0x64);
-    }
-
-}
-
-fn read_screen_state(cpu : &CPU , frame : &mut [u8; 32 * 3 * 32]) -> bool {
+ fn read_screen_state(cpu: &CPU, frame: &mut [u8; 32 * 3 * 32]) -> bool {
     let mut frame_idx = 0;
     let mut update = false;
-    for i in 0x200..0x600 {
-        let color_idx = cpu.mem_read(i);
-        let Color{ r : b1 , g : b2 , b : b3 , a: _} = color(color_idx);
-        if frame[frame_idx] != (b1 * 255.0) as u8  || frame[frame_idx + 1] != (b2 * 255.0) as u8 || frame[frame_idx + 2] != (b3 * 255.0) as u8 {
-            frame[frame_idx] = (b1 * 255.0) as u8;
-            frame[frame_idx + 1] = (b2 * 255.0) as u8;
-            frame[frame_idx + 2] = (b3 * 255.0) as u8;
-            update = true
+    for i in 0x0200..0x600 {
+        let color_idx = cpu.mem_read(i as u16);
+        let (b1, b2, b3) = color(color_idx).rgb();
+        if frame[frame_idx] != b1 || frame[frame_idx + 1] != b2 || frame[frame_idx + 2] != b3 {
+            frame[frame_idx] = b1;
+            frame[frame_idx + 1] = b2;
+            frame[frame_idx + 2] = b3;
+            update = true;
         }
-        frame_idx +=3;
+        frame_idx += 3;
     }
-
     update
-}
+ }
 
-fn window_conf() -> Conf {
-    Conf {
-        window_title : "NES_EMULATOR".to_owned(),
-        // window_height : 32 * 10,
-        // window_width : 32 * 10,
-        ..Default::default()
-    }
-}
-#[macroquad::main(window_conf)]
-async fn main() {
 
+
+fn main() {
+
+
+    let sdl_context = sdl2::init().unwrap();
+    let video_subsystem = sdl_context.video().unwrap();
+    let window = video_subsystem
+        .window("Snake game", (32.0 * 10.0) as u32, (32.0 * 10.0) as u32)
+        .position_centered()
+        .build().unwrap();
+ 
+    let mut canvas = window.into_canvas().present_vsync().build().unwrap();
+    let mut event_pump = sdl_context.event_pump().unwrap();
+    canvas.set_scale(10.0, 10.0).unwrap();
+
+    let creator = canvas.texture_creator();
+   let mut texture = creator
+       .create_texture_target(PixelFormatEnum::RGB24, 32, 32).unwrap();
     
 let game_code = vec![
     0x20, 0x06, 0x06, 0x20, 0x38, 0x06, 0x20, 0x0d, 0x06, 0x20, 0x2a, 0x06, 0x60, 0xa9, 0x02, 0x85,
@@ -115,23 +119,22 @@ let mut cpu = CPU::new();
 cpu.load(game_code);
 cpu.reset();
 
-let mut screen_state : [u8 ; 32 * 3 * 32 ] = [255;32 * 3 * 32];
-let texture_bytes = map_rgb_to_rgba(&screen_state);
-let texture = Texture2D::from_rgba8(32, 32, &texture_bytes);
-let mut params =  DrawTextureParams::default();
-params.dest_size = Some(Vec2::new(32.0 * 10.0, 32.0 * 10.0));
+let mut screen_state = [0 as u8; 32 * 3 * 32];
+let mut rng = rand::rng();
 
-
-cpu.run_with_callback(move |cpu|  {
-    handle_user_input(cpu);
-    cpu.mem_write(0xFE , rand::gen_range(1,16));
+cpu.run_with_callback(move |cpu| {
+    handle_user_input(cpu, &mut event_pump);
+    cpu.mem_write(0xfe, rng.random_range(1..16));
 
     if read_screen_state(cpu, &mut screen_state) {
-        texture.update_from_bytes(32, 32, &map_rgb_to_rgba(&screen_state));
-        draw_texture_ex(&texture, 0.0, 0.0, WHITE, params.clone());
-        
-    }
-}).await;
+        texture.update(None, &screen_state, 32 * 3).unwrap();
+        canvas.copy(&texture, None, None).unwrap();
+        canvas.present();
 
+        println!("Got here");
+        ::std::thread::sleep(std::time::Duration::new(0, 70_000));
+    }
+
+});
 
 }

@@ -1,8 +1,5 @@
 #![allow(dead_code)]
 
-
-use macroquad::window::next_frame;
-
 use crate::opcode::map_ops_code;
 
 #[derive(Debug)]
@@ -247,15 +244,15 @@ pub struct CPU {
         self.register_x = 0;
         self.register_y = 0;
         self.stack_pointer = STACK_RESET;
-        self.status = 0;
+        self.status = 0b100100;
  
         self.program_counter = self.mem_read_u16(0xFFFC);
     }
     //########### INIT ##################
-    pub async fn load_and_run(&mut self, program: Vec<u8>) {
+    pub fn load_and_run(&mut self, program: Vec<u8>) {
         self.load(program);
         self.program_counter = self.mem_read_u16(0xFFFC);
-        self.run().await;
+        self.run();
     }
     
     
@@ -698,20 +695,20 @@ pub struct CPU {
      }
      //####################################################
 
-    pub async fn run(&mut self) {
-        self.run_with_callback(|_|{}).await;
+    pub fn run(&mut self) {
+        self.run_with_callback(|_|{});
     }
   
-    pub async fn run_with_callback<F>(&mut self , mut callback : F)
+    pub fn run_with_callback<F>(&mut self , mut callback : F)
     where 
     F : FnMut(&mut CPU), 
     {
         loop {
             callback(self);
             let code = self.mem_read(self.program_counter);
-            let opscode = map_ops_code(code).unwrap();
             self.program_counter += 1;
             let program_state = self.program_counter;
+            let opscode = map_ops_code(code).unwrap();
     
             match opscode.code {
 
@@ -896,7 +893,6 @@ pub struct CPU {
             if program_state == self.program_counter {
                 self.program_counter += opscode.len as u16 - 1;
             }
-            next_frame().await;
         }
     }
  }
